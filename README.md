@@ -100,7 +100,31 @@ GridSearch Tuning result
 RandomSearch Tuning result
 ![image](https://github.com/user-attachments/assets/8947b176-3ddd-405f-85d9-6906b825c772) 
 
+###LSTM Model results
 
+This project uses an LSTM model to predict Tesla's logarithmic returns (Tesla_Log_Return) based on time-series data, capturing sequential patterns crucial for financial forecasting. The model includes two LSTM layers with dropout for regularization and a dense output layer, trained over 5 folds of time series cross-validation to ensure robustness. Each fold shows improved performance, with Mean Squared Error (MSE) and Mean Absolute Error (MAE) decreasing, and R² scores rising from 0.34 in Fold 1 to 0.66 in Fold 5. This trend indicates that the model benefits from more data, effectively generalizing to unseen data. With further tuning or additional data, this LSTM model can be valuable for real-world prediction tasks in finance.
+
+Results by Fold
+Fold 1:
+MSE: 0.0025
+MAE: 0.032
+R² Score: 0.34
+Fold 2:
+MSE: 0.00065
+MAE: 0.019
+R² Score: 0.51
+Fold 3:
+MSE: 0.00047
+MAE: 0.016
+R² Score: 0.63
+Fold 4:
+MSE: 0.00074
+MAE: 0.021
+R² Score: 0.60
+Fold 5:
+MSE: 0.00039
+MAE: 0.015
+R² Score: 0.66
 
 ## Results
 
