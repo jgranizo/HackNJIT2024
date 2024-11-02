@@ -80,7 +80,7 @@ RandomSearch further optimized performance, achieving:
 
 
 
-RandomSearch Tuning result
+#### RandomSearch Tuning result
 ![image](https://github.com/user-attachments/assets/eceae90d-f416-492e-b45c-c4a241ba422b) 
 
 
@@ -93,11 +93,11 @@ For continuous price prediction, the XGBoost regression model was evaluated with
 - **Test R² Score**: 0.3203
 
 
-GridSearch Tuning result 
+#### GridSearch Tuning result 
 ![image](https://github.com/user-attachments/assets/43990359-d550-4226-9051-155c0d5cc6c4)
 
 
-RandomSearch Tuning result
+#### RandomSearch Tuning result
 ![image](https://github.com/user-attachments/assets/8947b176-3ddd-405f-85d9-6906b825c772) 
 
 
