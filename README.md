@@ -92,8 +92,15 @@ For continuous price prediction, the XGBoost regression model was evaluated with
 - **Test RMSE**: 0.0282
 - **Test R² Score**: 0.3203
 
-GridSearch Tuning result  VS  RandomSearch Tuning result
-![image](https://github.com/user-attachments/assets/8947b176-3ddd-405f-85d9-6906b825c772) ![image](https://github.com/user-attachments/assets/9240e5ec-a58e-43c3-8ac9-1028284d8083)
+
+GridSearch Tuning result 
+![image](https://github.com/user-attachments/assets/43990359-d550-4226-9051-155c0d5cc6c4)
+
+
+RandomSearch Tuning result
+![image](https://github.com/user-attachments/assets/8947b176-3ddd-405f-85d9-6906b825c772) 
+
+
 
 ## Results
 
