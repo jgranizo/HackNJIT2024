@@ -114,6 +114,19 @@ Feature importance analysis highlighted the top predictive indicators:
 - Other impactful features included **Tesla_Log_Return_Lag1**, **Tesla_RSI_50**, and **Tesla_Log_Return_Lag5**
 
 ![image](https://github.com/user-attachments/assets/76442249-018a-42cb-8508-8e55b21e141b)
+### Technologies Used
+## Programming Languages
+Python: The primary language used for data analysis, machine learning model development, and deployment.
+Libraries and Frameworks
+NumPy: For numerical operations and handling multi-dimensional arrays.
+Pandas: For data manipulation and preprocessing.
+Scikit-learn (sklearn): For machine learning algorithms, model evaluation, and preprocessing utilities.
+XGBoost: For gradient boosting algorithms used in classification and regression tasks.
+RandomForest: From scikit-learn, used as a baseline regression model.
+Joblib: For model serialization and saving trained models.
+Plotly: For creating interactive visualizations and plots.
+Streamlit: For building and deploying the interactive web application.
+
 
 ## Conclusion
 
@@ -128,9 +141,12 @@ To build on these findings, future work could:
 
 
 ---
+### Deployment
+The developed machine learning models and data visualization tools were deployed as an interactive web application using Streamlit. This deployment allows users to input parameters, visualize predictions, and explore model performance in real-time.
 
-## Setup and Installation
+To access the deployed application, visit: Streamlit App URL
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/jgranizo/HackNJIT2024.git
+ ## Deployment Steps
+Set Up Environment: Ensure all required libraries are installed using requirements.txt.
+Run Streamlit App: Execute the command streamlit run app.py to launch the application locally.
+Deploy on Streamlit Sharing: Push the code to a GitHub repository and connect it to Streamlit Sharing for cloud deployment.
