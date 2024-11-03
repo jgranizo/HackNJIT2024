@@ -47,7 +47,7 @@ Using a Financial News API, approximately 1,000 news articles on Tesla were coll
 
 ## Machine Learning Models
 
-### Random Forest Regressor
+### Random Forest Classifier
 
 The Random Forest Regressor was trained with the processed data to predict stock price changes. By incorporating technical indicators and sentiment scores, the model achieved an improved R² score, demonstrating better alignment with stock movements compared to baseline attempts.
 
