@@ -100,7 +100,7 @@ For continuous price prediction, the XGBoost regression model was evaluated with
 #### RandomSearch Tuning result
 ![image](https://github.com/user-attachments/assets/8947b176-3ddd-405f-85d9-6906b825c772) 
 
-###LSTM model
+### LSTM model
 
 This project uses an LSTM model to predict Tesla's logarithmic returns (Tesla_Log_Return) based on time-series data, capturing sequential patterns crucial for financial forecasting. The model includes two LSTM layers with dropout for regularization and a dense output layer, trained over 5 folds of time series cross-validation to ensure robustness. Each fold shows improved performance, with Mean Squared Error (MSE) and Mean Absolute Error (MAE) decreasing, and R² scores rising from 0.34 in Fold 1 to 0.66 in Fold 5. This trend indicates that the model benefits from more data, effectively generalizing to unseen data. With further tuning or additional data, this LSTM model can be valuable for real-world prediction tasks in finance.
 
