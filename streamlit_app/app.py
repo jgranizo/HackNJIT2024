@@ -211,37 +211,7 @@ if run_backtest:
         )
         st.plotly_chart(fig, use_container_width=True)
     ###new
-        st.subheader("🔍 Predicted vs Actual Log Returns")
-        fig_scatter = go.Figure()
-
-        fig_scatter.add_trace(go.Scatter(
-            x=results_df['Actual Log Return'],
-            y=results_df['Predicted Log Return'],
-            mode='markers',
-            marker=dict(color='blue', opacity=0.6),
-            name='Predicted vs Actual'
-        ))
-
-        # Add a diagonal line for reference
-        min_val = min(results_df['Actual Log Return'].min(), results_df['Predicted Log Return'].min())
-        max_val = max(results_df['Actual Log Return'].max(), results_df['Predicted Log Return'].max())
-        fig_scatter.add_trace(go.Scatter(
-            x=[min_val, max_val],
-            y=[min_val, max_val],
-            mode='lines',
-            line=dict(color='red', dash='dash'),
-            showlegend=False
-        ))
-
-        fig_scatter.update_layout(
-            title="Predicted vs Actual Log Returns",
-            xaxis_title="Actual Log Return",
-            yaxis_title="Predicted Log Return",
-            hovermode="closest",
-            template="plotly_white"
-        )
-        st.plotly_chart(fig_scatter, use_container_width=True)
-
+       
         # Plot Actual vs Predicted Cumulative Returns
         st.subheader("📈 Cumulative Returns Over Time")
         fig_cumulative = go.Figure()
