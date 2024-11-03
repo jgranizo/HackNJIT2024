@@ -20,7 +20,7 @@ This project explores the potential of machine learning in predicting stock mark
 
 ## Introduction
 
-Stock market prediction is challenging, especially in high-frequency contexts, due to market dynamics and data volume. This project evaluates the ability of machine learning to provide insights into future price changes, with an emphasis on reducing prediction error. The Random Forest Regressor was used as a baseline, with additional experimentation using XGBoost for improved classification and regression tasks.
+Stock market prediction is challenging, especially in high-frequency contexts, due to market dynamics and data volume. This project evaluates the ability of machine learning to provide insights into future price changes, emphasizing reducing prediction error. The Random Forest Regressor was used as a baseline, with additional experimentation using XGBoost for improved classification and regression tasks.
 
 ## Data Preprocessing
 
