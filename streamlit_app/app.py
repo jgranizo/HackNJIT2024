@@ -51,7 +51,7 @@ run_backtest = st.sidebar.button("Run Backtest")
 # Load data function
 @st.cache_data
 def load_data():
-    stock_data = pd.read_csv("final_data.csv")
+    stock_data = pd.read_csv("https://raw.githubusercontent.com/jgranizo/HackNJIT2024/main/streamlit_app/final_data.csv")
     stock_data['date'] = pd.to_datetime(stock_data['date'], format='%Y-%m-%d')
     return stock_data
 
