@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This project explores the potential of machine learning in predicting stock market movements within a high-frequency trading (HFT) environment. Leveraging Tesla and Ford stock data (from October 31, 2018, to October 31, 2023), the study examines the predictive capabilities of technical indicators and sentiment analysis, using Random Forest and XGBoost models to improve forecast accuracy.
+This project explores the potential of machine learning in predicting stock market movements within a high-frequency trading (HFT) environment. Leveraging Tesla and Ford stock data (from October 31, 2018, to October 31, 2023), the study examines the predictive capabilities of technical indicators and sentiment analysis, using Random Forest and XGBoost models to improve forecast accuracy. Check out our StreamLit App to try the models https://steampulse.streamlit.app/
 
 ## Table of Contents
 
