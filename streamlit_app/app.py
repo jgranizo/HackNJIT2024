@@ -7,6 +7,7 @@ import plotly.graph_objs as go
 from datetime import datetime, timedelta
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import accuracy_score, classification_report
+import shap
 
 # Set page configuration
 st.set_page_config(page_title="High-Frequency Trading Backtesting", layout="wide")
@@ -181,6 +182,39 @@ if run_backtest:
         st.subheader("📊 Predicted vs Actual Values")
         st.dataframe(results_df)
 
+        shap_explainer = shap.TreeExplainer(xgb_classifier)
+        shap_values = shap_explainer.shap_values(X)
+
+        # Convert SHAP values to DataFrame for better handling with Plotly
+        shap_df = pd.DataFrame(shap_values, columns=X.columns)
+
+        # Calculate mean absolute SHAP values for feature importance
+        feature_importance = shap_df.abs().mean().sort_values(ascending=False)
+        feature_importance_df = feature_importance.reset_index()
+        feature_importance_df.columns = ['Feature', 'Importance']
+
+        # Plot with Plotly
+        fig = px.bar(
+            feature_importance_df,
+            x='Importance',
+            y='Feature',
+            orientation='h',
+            title='🔍 SHAP Feature Importance',
+            width=800,  # Set the width
+            height=600,  # Set the height
+        )
+
+        # Customize the dark theme layout
+        fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
+            plot_bgcolor='rgba(0,0,0,0)',   # Transparent plot area
+            font_color='white',             # White font for dark theme
+            title_font_size=20
+        )
+        fig.update_traces(marker_color='cyan')  # Customize bar color for dark theme
+
+        # Display in Streamlit
+        st.plotly_chart(fig)
         # Display classification report in an expandable section
         with st.expander("View Classification Report"):
             report = classification_report(y_clf, y_pred_clf, output_dict=True)
