@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import accuracy_score, classification_report
 import shap
+import plotly.express as px
 
 # Set page configuration
 st.set_page_config(page_title="High-Frequency Trading Backtesting", layout="wide")
