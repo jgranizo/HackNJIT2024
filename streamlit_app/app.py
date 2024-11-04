@@ -8,6 +8,8 @@ import shap
 from datetime import datetime, timedelta
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import accuracy_score, classification_report
+import shap
+import plotly.express as px
 
 # Set page configuration
 st.set_page_config(page_title="High-Frequency Trading Backtesting", layout="wide")
@@ -92,6 +94,7 @@ if run_backtest:
 
     if data_in_range.empty:
         st.error("No data available for the selected date range. Please adjust the investment duration.")
+
     else:
         # Feature and target selection
         excluded_features = ['Tesla_Log_Return', 'Tesla_Direction', 'date']
