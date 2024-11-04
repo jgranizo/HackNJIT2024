@@ -1,9 +1,10 @@
-
 import joblib
 import streamlit as st
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
+import plotly.express as px
+import shap
 from datetime import datetime, timedelta
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.metrics import accuracy_score, classification_report
@@ -30,7 +31,7 @@ input_value_amount = st.sidebar.number_input(
     help="Enter the amount you would like to invest."
 )
 
-max_investment_days = 200  # Maximum allowed investment period
+max_investment_days = 200
 investment_days = st.sidebar.slider(
     "⏳ Investment Duration (Days):",
     min_value=1,
@@ -60,21 +61,15 @@ def load_data():
 # Load models function
 @st.cache_resource
 def load_models():
-    # Load the regressor model
     try:
         xgb_regressor = XGBRegressor()
         xgb_regressor.load_model('./models/best_xgb_regressor.model')
-        st.write("Regressor model loaded successfully.")
-
     except Exception as e:
         st.error(f"Error loading regressor: {e}")
         xgb_regressor = None
 
-    # Load the classifier model
     try:
-        xgb_classifier = joblib.load('./models/best_xgb_classifier.pkl')        
-        st.write("Classifier model loaded successfully.")
-
+        xgb_classifier = joblib.load('./models/best_xgb_classifier.pkl')
     except Exception as e:
         st.error(f"Error loading classifier: {e}")
         xgb_classifier = None
@@ -83,32 +78,14 @@ def load_models():
 
 # Main logic
 if run_backtest:
-    st.subheader("🔄 Running Backtest...")
     stock_data = load_data()
     xgb_regressor, xgb_classifier = load_models()
 
+    # Date handling logic
     start_date = stock_data['date'].min()
-    fixed_start_date = start_date
-
-    # Calculate the desired investment end date based on the selected duration
-    desired_end_date = fixed_start_date + timedelta(days=int(investment_days))
-
-    # Adjust the end date if it exceeds available data
+    desired_end_date = start_date + timedelta(days=investment_days)
     available_dates = stock_data['date'].sort_values()
-
-    if desired_end_date in set(available_dates):
-        end_date = desired_end_date
-    else:
-        # Find the closest date after the desired end date
-        future_dates = available_dates[available_dates >= desired_end_date]
-        if not future_dates.empty:
-            end_date = future_dates.iloc[0]
-            st.warning(f"The desired end date {desired_end_date.strftime('%Y-%m-%d')} is not available. Adjusted to {end_date.strftime('%Y-%m-%d')}.")
-        else:
-            # If no future dates are available, use the last available date
-            end_date = available_dates.max()
-            st.warning(f"The desired end date {desired_end_date.strftime('%Y-%m-%d')} exceeds available data. Adjusted to {end_date.strftime('%Y-%m-%d')}.")
-
+    end_date = min(desired_end_date, available_dates.max())
     actual_investment_days = (end_date - start_date).days
 
     # Filter data within the date range
@@ -117,160 +94,78 @@ if run_backtest:
 
     if data_in_range.empty:
         st.error("No data available for the selected date range. Please adjust the investment duration.")
-        st.stop()
 
-    # Select features based on the selected stock
-    if selected_stock == "Tesla":
-        excluded_features = ['Tesla_Log_Return', 'Tesla_Direction', 'date']
-    
-    features = [col for col in stock_data.columns if col not in excluded_features]
-
-    # Features and targets
-    X = data_in_range[features]
-    y_reg = data_in_range['Tesla_Log_Return']
-    y_clf = data_in_range['Tesla_Direction']
-
-    # Reorder columns in X to match the trained model
-    # (Assuming correct_feature_order is adjusted based on selected_stock)
-    correct_feature_order = X.columns.tolist()
-    X = X[correct_feature_order]
-
-    if xgb_regressor is not None and xgb_classifier is not None:
-        # Make predictions
-        y_pred_reg = xgb_regressor.predict(X)
-        y_pred_clf = xgb_classifier.predict(X)
-
-        # Compute accuracy
-        accuracy = accuracy_score(y_clf, y_pred_clf)
-
-        # Create a dataframe to display actual vs predicted values
-        results_df = pd.DataFrame({
-            'Date': data_in_range['date'],
-            'Actual Log Return': y_reg,
-            'Predicted Log Return': y_pred_reg,
-            'Actual Direction': y_clf,
-            'Predicted Direction': y_pred_clf
-        })
-
-        # Compute cumulative returns
-        results_df['Actual Cumulative Return'] = (1 + results_df['Actual Log Return']).cumprod() - 1
-        results_df['Predicted Cumulative Return'] = (1 + results_df['Predicted Log Return']).cumprod() - 1
-
-        # Calculate investment outcomes
-        investment_amount = input_value_amount
-        actual_return = results_df['Actual Cumulative Return'].iloc[-1]
-        predicted_return = results_df['Predicted Cumulative Return'].iloc[-1]
-
-        actual_profit = investment_amount * actual_return
-        predicted_profit = investment_amount * predicted_return
-
-        # Display investment summary using columns
-        st.subheader("💼 Investment Summary")
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Start Date", start_date.strftime('%Y-%m-%d'))
-        col2.metric("End Date", end_date.strftime('%Y-%m-%d'))
-        col3.metric("Duration (Days)", actual_investment_days)
-
-        col1, col2 = st.columns(2)
-        col1.metric("Initial Investment", f"${investment_amount:,.2f}")
-        col1.metric("Actual Profit", f"${actual_profit:,.2f}")
-        col1.metric("Actual Return", f"{actual_return*100:.2f}%")
-        col2.metric("Predicted Profit", f"${predicted_profit:,.2f}")
-        col2.metric("Predicted Return", f"{predicted_return*100:.2f}%")
-        col2.metric("Model Accuracy", f"{accuracy*100:.2f}%")
-
-        # Display the results
-        st.subheader("📊 Predicted vs Actual Values")
-        st.dataframe(results_df)
-
-        shap_explainer = shap.TreeExplainer(xgb_classifier)
-        shap_values = shap_explainer.shap_values(X)
-
-        # Convert SHAP values to DataFrame for better handling with Plotly
-        shap_df = pd.DataFrame(shap_values, columns=X.columns)
-
-        # Calculate mean absolute SHAP values for feature importance
-        feature_importance = shap_df.abs().mean().sort_values(ascending=False)
-        feature_importance_df = feature_importance.reset_index()
-        feature_importance_df.columns = ['Feature', 'Importance']
-
-        # Plot with Plotly
-        fig = px.bar(
-            feature_importance_df,
-            x='Importance',
-            y='Feature',
-            orientation='h',
-            title='🔍 SHAP Feature Importance',
-            width=800,  # Set the width
-            height=600,  # Set the height
-        )
-
-        # Customize the dark theme layout
-        fig.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)',  # Transparent background
-            plot_bgcolor='rgba(0,0,0,0)',   # Transparent plot area
-            font_color='white',             # White font for dark theme
-            title_font_size=20
-        )
-        fig.update_traces(marker_color='cyan')  # Customize bar color for dark theme
-
-        # Display in Streamlit
-        st.plotly_chart(fig)
-        # Display classification report in an expandable section
-        with st.expander("View Classification Report"):
-            report = classification_report(y_clf, y_pred_clf, output_dict=True)
-            report_df = pd.DataFrame(report).transpose()
-            st.write(report_df)
-
-        # Plot Actual vs Predicted Log Returns
-        st.subheader("📈 Log Returns Over Time")
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=results_df['Date'],
-            y=results_df['Actual Log Return'],
-            mode='lines',
-            name='Actual Log Return'
-        ))
-        fig.add_trace(go.Scatter(
-            x=results_df['Date'],
-            y=results_df['Predicted Log Return'],
-            mode='lines',
-            name='Predicted Log Return'
-        ))
-        fig.update_layout(
-            title="Actual vs Predicted Tesla Log Return Over Time",
-            xaxis_title="Date",
-            yaxis_title="Log Return",
-            hovermode="x unified",
-            template="plotly_white"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    ###new
-       
-        # Plot Actual vs Predicted Cumulative Returns
-        st.subheader("📈 Cumulative Returns Over Time")
-        fig_cumulative = go.Figure()
-        fig_cumulative.add_trace(go.Scatter(
-            x=results_df['Date'],
-            y=results_df['Actual Cumulative Return'],
-            mode='lines',
-            name='Actual Cumulative Return'
-        ))
-        fig_cumulative.add_trace(go.Scatter(
-            x=results_df['Date'],
-            y=results_df['Predicted Cumulative Return'],
-            mode='lines',
-            name='Predicted Cumulative Return'
-        ))
-        fig_cumulative.update_layout(
-            title="Actual vs Predicted Cumulative Return Over Time",
-            xaxis_title="Date",
-            yaxis_title="Cumulative Return",
-            hovermode="x unified",
-            template="plotly_white"
-        )
-        st.plotly_chart(fig_cumulative, use_container_width=True)
     else:
-        st.error("Models could not be loaded. Please check the model files and try again.")
+        # Feature and target selection
+        excluded_features = ['Tesla_Log_Return', 'Tesla_Direction', 'date']
+        features = [col for col in stock_data.columns if col not in excluded_features]
+        X = data_in_range[features]
+        y_reg = data_in_range['Tesla_Log_Return']
+        y_clf = data_in_range['Tesla_Direction']
+
+        if xgb_regressor and xgb_classifier:
+            y_pred_reg = xgb_regressor.predict(X)
+            y_pred_clf = xgb_classifier.predict(X)
+            accuracy = accuracy_score(y_clf, y_pred_clf)
+
+            # Results DataFrame
+            results_df = pd.DataFrame({
+                'Date': data_in_range['date'],
+                'Actual Log Return': y_reg,
+                'Predicted Log Return': y_pred_reg,
+                'Actual Direction': y_clf,
+                'Predicted Direction': y_pred_clf
+            })
+            results_df['Actual Cumulative Return'] = (1 + results_df['Actual Log Return']).cumprod() - 1
+            results_df['Predicted Cumulative Return'] = (1 + results_df['Predicted Log Return']).cumprod() - 1
+
+            # Investment summary
+            investment_amount = input_value_amount
+            actual_profit = investment_amount * results_df['Actual Cumulative Return'].iloc[-1]
+            predicted_profit = investment_amount * results_df['Predicted Cumulative Return'].iloc[-1]
+
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Start Date", start_date.strftime('%Y-%m-%d'))
+            col2.metric("End Date", end_date.strftime('%Y-%m-%d'))
+            col3.metric("Duration (Days)", actual_investment_days)
+
+            col1, col2 = st.columns(2)
+            col1.metric("Initial Investment", f"${investment_amount:,.2f}")
+            col1.metric("Actual Profit", f"${actual_profit:,.2f}")
+            col1.metric("Actual Return", f"{results_df['Actual Cumulative Return'].iloc[-1] * 100:.2f}%")
+            col2.metric("Predicted Profit", f"${predicted_profit:,.2f}")
+            col2.metric("Predicted Return", f"{results_df['Predicted Cumulative Return'].iloc[-1] * 100:.2f}%")
+            col2.metric("Model Accuracy", f"{accuracy * 100:.2f}%")
+
+            # SHAP Feature Importance
+            shap_explainer = shap.TreeExplainer(xgb_classifier)
+            shap_values = shap_explainer.shap_values(X)
+            feature_importance = pd.DataFrame({
+                'Feature': X.columns,
+                'Importance': np.abs(shap_values).mean(axis=0)
+            }).sort_values(by="Importance", ascending=False)
+
+            fig_shap = px.bar(feature_importance, x="Importance", y="Feature", orientation="h",
+                              title="🔍 SHAP Feature Importance")
+            st.plotly_chart(fig_shap, use_container_width=True, key="shap_chart")
+
+            # Plot Actual vs Predicted Log Returns
+            fig_log_returns = go.Figure()
+            fig_log_returns.add_trace(go.Scatter(x=results_df['Date'], y=results_df['Actual Log Return'], mode='lines', name='Actual Log Return'))
+            fig_log_returns.add_trace(go.Scatter(x=results_df['Date'], y=results_df['Predicted Log Return'], mode='lines', name='Predicted Log Return'))
+            fig_log_returns.update_layout(title="Actual vs Predicted Tesla Log Return Over Time", xaxis_title="Date", yaxis_title="Log Return")
+            st.plotly_chart(fig_log_returns, use_container_width=True, key="log_returns_chart")
+
+            # Plot Actual vs Predicted Cumulative Returns
+            fig_cumulative = go.Figure()
+            fig_cumulative.add_trace(go.Scatter(x=results_df['Date'], y=results_df['Actual Cumulative Return'], mode='lines', name='Actual Cumulative Return'))
+            fig_cumulative.add_trace(go.Scatter(x=results_df['Date'], y=results_df['Predicted Cumulative Return'], mode='lines', name='Predicted Cumulative Return'))
+            fig_cumulative.update_layout(title="Actual vs Predicted Cumulative Return Over Time", xaxis_title="Date", yaxis_title="Cumulative Return")
+            st.plotly_chart(fig_cumulative, use_container_width=True, key="cumulative_chart")
+
+            # Classification Report
+            with st.expander("View Classification Report"):
+                report_df = pd.DataFrame(classification_report(y_clf, y_pred_clf, output_dict=True)).transpose()
+                st.write(report_df)
 else:
     st.info("Adjust the parameters on the sidebar and click **Run Backtest** to start.")
